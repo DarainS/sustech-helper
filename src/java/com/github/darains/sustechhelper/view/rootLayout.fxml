@@ -21,12 +21,12 @@
                         <FlowPane layoutX="68.0" layoutY="57.0" prefHeight="200.0" prefWidth="200.0" />
                         <Pane layoutX="-7.0" layoutY="58.0" prefHeight="252.0" prefWidth="412.0">
                            <children>
-                              <CheckBox fx:id="isRememberCB" layoutX="63.0" layoutY="5.0" mnemonicParsing="false" onAction="#handlePasswordCheckBox" text="CheckBox">
+                              <CheckBox fx:id="isRememberCB" layoutX="63.0" layoutY="5.0" mnemonicParsing="false" onAction="#handlePasswordCheckBox" text="记住密码">
                                  <font>
                                     <Font size="9.0" />
                                  </font>
                               </CheckBox>
-                              <CheckBox fx:id="isAutoRunCB" layoutX="138.0" layoutY="5.0" mnemonicParsing="false" onAction="#handleAutoRunCheckBox" text="CheckBox">
+                              <CheckBox fx:id="isAutoRunCB" layoutX="138.0" layoutY="5.0" mnemonicParsing="false" onAction="#handleAutoRunCheckBox" text="自动连接">
                                  <font>
                                     <Font size="9.0" />
                                  </font>
