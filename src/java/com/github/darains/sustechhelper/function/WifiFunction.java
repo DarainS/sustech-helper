@@ -1,5 +1,7 @@
 package com.github.darains.sustechhelper.function;
 
+import com.github.darains.sustechhelper.util.Logger;
+import com.github.darains.sustechhelper.util.TimeLog;
 import lombok.Setter;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -11,8 +13,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import com.github.darains.sustechhelper.util.Logger;
-import com.github.darains.sustechhelper.util.TimeLog;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WifiFunction implements Logger,Runnable{
+public class WifiFunction implements Runnable{
     
     private static Logger logger;
     
@@ -34,6 +34,12 @@ public class WifiFunction implements Logger,Runnable{
     
     @Setter
     private String password;
+    
+    @Setter
+    private static boolean isRememberPassword;
+    
+    @Setter
+    private static boolean isAutoRun;
     
     private CloseableHttpClient httpClient = HttpClients.createDefault();
     
@@ -60,8 +66,8 @@ public class WifiFunction implements Logger,Runnable{
             try {
                 response= httpClient.execute(httpget);
                 if (response.getStatusLine().getStatusCode()==200){
-                    if (isConnected && false){
-                        
+                    if (isConnected){
+                        logger.relog(time()+"Connected");
                     }
                     else {
                         logger.log(time()+"Connected");
