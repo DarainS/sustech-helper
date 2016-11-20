@@ -98,10 +98,15 @@ public class RootController{
         
 //        ExecutorService s= Executors.newSingleThreadExecutor();
         
-        Config.INFO.setProperty("userid",userName);
-        
-        if (isRememberCB.isSelected()) {
-            Config.INFO.setProperty("password", password);
+        try{
+            Config.INFO.setProperty("userid",userName);
+    
+            if (isRememberCB.isSelected()) {
+                Config.INFO.setProperty("password", password);
+            }
+    
+        } catch (Exception e){
+            e.printStackTrace();
         }
         
         WifiFunction l=new WifiFunction();

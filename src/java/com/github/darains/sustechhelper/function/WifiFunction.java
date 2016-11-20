@@ -27,6 +27,16 @@ import java.util.regex.Pattern;
 
 public class WifiFunction implements Runnable{
     
+    enum NetStatus {
+        CONNECTED(0,"Connected"),NEWWORK_ERROR(403,"Network Error!"),NOT_IN_SCHOOL(300,"Not in Students' Network!"),NO_NETWORK(400,"No Networking!");
+        public final int statusCode;
+        public final String describe;
+        NetStatus(int status,String describe){
+            this.statusCode=status;
+            this.describe=describe;
+        }
+    }
+    
     private static Logger logger;
     
     @Setter
@@ -50,7 +60,7 @@ public class WifiFunction implements Runnable{
     private static long delay = 2000;
     
     
-    private volatile boolean isConnected=false;
+    private volatile NetStatus netStatus;
     
     public synchronized static void setDefaultHeader(HttpRequestBase httpGet){
         HttpParams params = new BasicHttpParams();
@@ -66,16 +76,15 @@ public class WifiFunction implements Runnable{
             try {
                 response= httpClient.execute(httpget);
                 if (response.getStatusLine().getStatusCode()==200){
-                    if (isConnected){
+                    if (netStatus==NetStatus.CONNECTED){
                         logger.relog(time()+"Connected");
                     }
                     else {
                         logger.log(time()+"Connected");
-                        isConnected=true;
+                        netStatus=NetStatus.CONNECTED;
                     }
                 }
                 else{
-                    isConnected=false;
                     if (response.getFirstHeader("Location")!=null){
                         location=response.getFirstHeader("Location").getValue();
                         if (location.contains("baidu.com")){
@@ -87,18 +96,39 @@ public class WifiFunction implements Runnable{
                                 logIn();
                             }
                             else {
-                                logger.log(time()+"Not in Students' Network!");
+                                if (netStatus==NetStatus.NOT_IN_SCHOOL){
+                                    logger.relog(time()+"Not in Students' Network!");
+                                } else {
+                                    logger.log(time()+"Not in Students' Network!");
+                                    netStatus=NetStatus.NOT_IN_SCHOOL;
+    
+                                }
                             }
                     }
                     else {
-                        logger.log(time()+"Not in Students' Network!");
+                        if (netStatus==NetStatus.NOT_IN_SCHOOL){
+                            logger.relog(time()+"Not in Students' Network!");
+                        } else {
+                            logger.log(time()+"Not in Students' Network!");
+                            netStatus=NetStatus.NOT_IN_SCHOOL;
+                        }
                     }
                 }
             } catch (UnknownHostException e) {
-                logger.log(time()+"No Networking!");
+                if (netStatus==NetStatus.NO_NETWORK){
+                    logger.relog(time()+"No Networking!");
+                } else {
+                    logger.log(time()+"No Networking!");
+                    netStatus=NetStatus.NO_NETWORK;
+                }
             }
             catch (SocketException se){
-                logger.log(time()+"Network Error!");
+                if (netStatus==NetStatus.NEWWORK_ERROR){
+                    logger.relog(time()+"Network Error!");
+                } else {
+                    logger.log(time()+"Network Error!");
+                    netStatus=NetStatus.NEWWORK_ERROR;
+                }
             }
             finally {
                 if (response!=null)
@@ -192,18 +222,18 @@ public class WifiFunction implements Runnable{
     public void run(){
         logger.log(mo+"SUSTC_WIFI v0.2.0_beta "+mo);
         logger.log(TimeLog.timeInfo() + "Starting...");
+        long begin= System.currentTimeMillis();
         while (shouldRun) {
             try {
                 isNetWorking();
-                TimeUnit.MILLISECONDS.sleep(delay);
+                TimeUnit.MILLISECONDS.sleep(System.currentTimeMillis()-begin+delay);
+                begin=System.currentTimeMillis();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
     
-    
-    public static void main(String[] args) {
 //        if (args.length==2&&args[0].length()==8&&args[0].compareTo("11110000")>0&&args[1].length()>=6) {
 //            userName=args[0];
 //            password=args[1];
@@ -222,8 +252,7 @@ public class WifiFunction implements Runnable{
 //            System.out.println("请输入你的学号和密码,我们绝不会以任何方式记录你的密码!");
 //            System.out.println("一个合法的输入示例为: java -jar C:\\\\sustc_wifi.jar 11310888 qwer1234");
 //        }
-
-    }
+    
     
     public static void setLogger(Logger l){
         logger=l;
