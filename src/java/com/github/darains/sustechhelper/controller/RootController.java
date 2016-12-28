@@ -2,7 +2,7 @@ package com.github.darains.sustechhelper.controller;
 
 import com.github.darains.sustechhelper.function.WifiFunction;
 import com.github.darains.sustechhelper.util.Config;
-import com.github.darains.sustechhelper.util.Logger;
+import com.github.darains.sustechhelper.util.AppLogger;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -32,7 +32,7 @@ public class RootController{
     private CheckBox isAutoRunCB;
     
     
-    class TextLog implements Logger{
+    class TextLog implements AppLogger{
         TextArea t;
         
         int len;
@@ -115,7 +115,7 @@ public class RootController{
         
         WifiFunction.setAutoRun(isAutoRunCB.isSelected());
         
-        l.setLogger(new TextLog(logArea));
+        l.setAppLogger(new TextLog(logArea));
         
         l.setUserName(userName);
         

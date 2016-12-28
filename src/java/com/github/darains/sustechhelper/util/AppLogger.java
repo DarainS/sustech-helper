@@ -1,6 +1,7 @@
 package com.github.darains.sustechhelper.util;
 
-public interface Logger{
+public interface AppLogger{
     void log(String s);
     void relog(String s);
 }
+

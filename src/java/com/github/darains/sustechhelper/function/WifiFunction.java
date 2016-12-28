@@ -1,6 +1,6 @@
 package com.github.darains.sustechhelper.function;
 
-import com.github.darains.sustechhelper.util.Logger;
+import com.github.darains.sustechhelper.util.AppLogger;
 import com.github.darains.sustechhelper.util.TimeLog;
 import lombok.Setter;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -13,6 +13,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,9 +23,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class WifiFunction implements Runnable{
     
@@ -37,7 +41,7 @@ public class WifiFunction implements Runnable{
         }
     }
     
-    private static Logger logger;
+    private static AppLogger appLogger;
     
     @Setter
     private String userName;
@@ -57,8 +61,7 @@ public class WifiFunction implements Runnable{
     
     private static final String mo="~~~~~~~~~~";
     
-    private static long delay = 2000;
-    
+    private static long delay = 1000;
     
     private volatile NetStatus netStatus;
     
@@ -77,29 +80,29 @@ public class WifiFunction implements Runnable{
                 response= httpClient.execute(httpget);
                 if (response.getStatusLine().getStatusCode()==200){
                     if (netStatus==NetStatus.CONNECTED){
-                        logger.relog(time()+"Connected");
+                        appLogger.relog(time()+netStatus.describe);
                     }
                     else {
-                        logger.log(time()+"Connected");
                         netStatus=NetStatus.CONNECTED;
+                        appLogger.log(time()+netStatus.describe);
                     }
                 }
                 else{
                     if (response.getFirstHeader("Location")!=null){
                         location=response.getFirstHeader("Location").getValue();
                         if (location.contains("baidu.com")){
-                            logger.log(time()+"Connected");
+                            appLogger.log(time()+"Connected");
                         }
                         else
                             if (location.contains("http://enet.10000.gd.cn")){
-                                logger.log(time()+"WifiFunction...");
+                                appLogger.log(time()+"WifiFunction...");
                                 logIn();
                             }
                             else {
                                 if (netStatus==NetStatus.NOT_IN_SCHOOL){
-                                    logger.relog(time()+"Not in Students' Network!");
+                                    appLogger.relog(time()+"Not in Students' Network!");
                                 } else {
-                                    logger.log(time()+"Not in Students' Network!");
+                                    appLogger.log(time()+"Not in Students' Network!");
                                     netStatus=NetStatus.NOT_IN_SCHOOL;
     
                                 }
@@ -107,26 +110,26 @@ public class WifiFunction implements Runnable{
                     }
                     else {
                         if (netStatus==NetStatus.NOT_IN_SCHOOL){
-                            logger.relog(time()+"Not in Students' Network!");
+                            appLogger.relog(time()+"Not in Students' Network!");
                         } else {
-                            logger.log(time()+"Not in Students' Network!");
+                            appLogger.log(time()+"Not in Students' Network!");
                             netStatus=NetStatus.NOT_IN_SCHOOL;
                         }
                     }
                 }
             } catch (UnknownHostException e) {
                 if (netStatus==NetStatus.NO_NETWORK){
-                    logger.relog(time()+"No Networking!");
+                    appLogger.relog(time()+"No Networking!");
                 } else {
-                    logger.log(time()+"No Networking!");
+                    appLogger.log(time()+"No Networking!");
                     netStatus=NetStatus.NO_NETWORK;
                 }
             }
             catch (SocketException se){
                 if (netStatus==NetStatus.NEWWORK_ERROR){
-                    logger.relog(time()+"Network Error!");
+                    appLogger.relog(time()+"Network Error!");
                 } else {
-                    logger.log(time()+"Network Error!");
+                    appLogger.log(time()+"Network Error!");
                     netStatus=NetStatus.NEWWORK_ERROR;
                 }
             }
@@ -148,13 +151,16 @@ public class WifiFunction implements Runnable{
     }
     
     private void logIn(){
-        logIn(userName.toString(),password.toString().toCharArray());
+        logIn(userName,password.toCharArray());
     }
     
     public void logIn(String username,char[] password){
+        System.out.println("location:"+location);
         HttpGet httpGet=newGetRequest(location);
         String data;
         try {
+//            log.info();
+//            Connection.Response response=Jsoup.connect(location).execute();
             data=text(httpClient.execute(httpGet));
             String s1="action=\"(.*?)\"";
             String s2="<input type=\"hidden\" name=\"lt\" .*?value=\"(.*?)\"";
@@ -177,7 +183,7 @@ public class WifiFunction implements Runnable{
                 lt=lt.substring(38,lt.length()-1);
                 execution=execution.substring(45,execution.length()-1);
 
-                HttpPost httpPost = new HttpPost("http://weblogin.sustc.edu.cn"+action);
+                HttpPost httpPost = new HttpPost("https://cas.sustc.edu.cn"+action);
                 List<BasicNameValuePair> list = new ArrayList<BasicNameValuePair>();
                 list.add(new BasicNameValuePair("username",username));
                 list.add(new BasicNameValuePair("password", new String(password)));
@@ -187,9 +193,19 @@ public class WifiFunction implements Runnable{
                 list.add(new BasicNameValuePair("submit","LOGIN"));
                 UrlEncodedFormEntity entity = new UrlEncodedFormEntity(list);
                 httpPost.setEntity(entity);
-
+                
                 System.out.println("~~~~~~~~~executing request~~~~~~~~~~" + httpPost.getURI());
-                httpClient.execute(httpPost);
+    
+                Executors.newSingleThreadExecutor().submit(new Runnable(){
+                    @Override
+                    public void run(){
+                        try{
+                            httpClient.execute(httpPost);
+                        } catch(IOException e){
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
             else {
                 System.out.println("\nError");
@@ -199,6 +215,19 @@ public class WifiFunction implements Runnable{
             e.printStackTrace();
         }
     }
+    
+    
+    public void testLogIn(){
+        String url="https://cas.sustc.edu.cn/cas/login?service="+location;
+        Connection.Response response=Jsoup.connect(url).response();
+        try{
+            response.parse().body().select("").val();
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+    
+    
     public static String text(CloseableHttpResponse response){
         StringBuffer sb=new StringBuffer();
         try {
@@ -220,13 +249,13 @@ public class WifiFunction implements Runnable{
     private volatile boolean shouldRun=true;
     
     public void run(){
-        logger.log(mo+"SUSTC_WIFI v0.2.0_beta "+mo);
-        logger.log(TimeLog.timeInfo() + "Starting...");
+        appLogger.log(mo+"SUSTC_WIFI v0.2.2_beta "+mo);
+        appLogger.log(TimeLog.timeInfo() + "Starting...");
         long begin= System.currentTimeMillis();
         while (shouldRun) {
             try {
                 isNetWorking();
-                TimeUnit.MILLISECONDS.sleep(System.currentTimeMillis()-begin+delay);
+                TimeUnit.MILLISECONDS.sleep(delay-(System.currentTimeMillis()-begin>0?System.currentTimeMillis()-begin:delay));
                 begin=System.currentTimeMillis();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -254,16 +283,9 @@ public class WifiFunction implements Runnable{
 //        }
     
     
-    public static void setLogger(Logger l){
-        logger=l;
+    public static void setAppLogger(AppLogger l){
+        appLogger =l;
     }
     
-    public void log(String s){
-        logger.log(s);
-    }
-    
-    public void log(Logger l, String s){
-        l.log(s);
-    }
     
 }
