@@ -1,32 +1,26 @@
 package com.github.darains.sustechhelper.function;
 
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.github.darains.sustechhelper.util.AppLogger;
 import com.github.darains.sustechhelper.util.TimeLog;
 import lombok.Setter;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
+import org.xml.sax.SAXException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class WifiFunction implements Runnable{
@@ -96,7 +90,11 @@ public class WifiFunction implements Runnable{
                         else
                             if (location.contains("http://enet.10000.gd.cn")){
                                 appLogger.log(time()+"WifiFunction...");
-                                logIn();
+                                try{
+                                    logIn();
+                                } catch(SAXException e){
+                                    e.printStackTrace();
+                                }
                             }
                             else {
                                 if (netStatus==NetStatus.NOT_IN_SCHOOL){
@@ -150,19 +148,25 @@ public class WifiFunction implements Runnable{
         return httpGet;
     }
     
-    private void logIn(){
-        logIn(userName,password.toCharArray());
+    private void logIn() throws IOException, SAXException{
+        logIn(userName,password);
     }
     
+    /*
+    *
+    * 被弃用的登录方法,现使用HtmlUnit模拟浏览器莱登陆
+    *
     public void logIn(String username,char[] password){
-        System.out.println("location:"+location);
-        HttpGet httpGet=newGetRequest(location);
+        System.out.println("login()\nlocation:"+location);
+        String newUrl="https://cas.sustc.edu.cn/cas/login?service="+location;
+        HttpGet httpGet=newGetRequest(newUrl);
         String data;
         try {
 //            log.info();
 //            Connection.Response response=Jsoup.connect(location).execute();
             data=text(httpClient.execute(httpGet));
             String s1="action=\"(.*?)\"";
+            System.out.println("data:\n"+data);
             String s2="<input type=\"hidden\" name=\"lt\" .*?value=\"(.*?)\"";
             String s3="<input type=\"hidden\" name=\"execution\" .*?value=\"(.*?)\"";
             String s4="jsessionid=(.*?)type=";
@@ -180,6 +184,8 @@ public class WifiFunction implements Runnable{
                 String execution= matcherExec.group(0);
                 action=action.substring(8,action.length()-1);
                 System.out.println("action:"+action);
+                System.out.println("execution:"+execution);
+    
                 lt=lt.substring(38,lt.length()-1);
                 execution=execution.substring(45,execution.length()-1);
 
@@ -215,16 +221,24 @@ public class WifiFunction implements Runnable{
             e.printStackTrace();
         }
     }
+    */
     
-    
-    public void testLogIn(){
-        String url="https://cas.sustc.edu.cn/cas/login?service="+location;
-        Connection.Response response=Jsoup.connect(url).response();
-        try{
-            response.parse().body().select("").val();
-        } catch(IOException e){
-            e.printStackTrace();
-        }
+    public void logIn(String username,String password) throws IOException, SAXException{
+        final WebClient webClient = new WebClient();
+        
+        final HtmlPage page = webClient.getPage("http://baidu.com");
+        
+        HtmlElement usernameField = page.getFirstByXPath("//*[@id=\"username\"]");
+        usernameField.click();
+        usernameField.type(username);
+        
+        HtmlElement passwordField=page.getFirstByXPath("//*[@id=\"password\"]");
+        passwordField.click();
+        passwordField.type(password);
+        
+        HtmlElement elmt=page.getFirstByXPath("//*[@id=\"fm1\"]/section[3]/input[4]");
+        elmt.click();
+        
     }
     
     
