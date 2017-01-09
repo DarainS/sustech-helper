@@ -11,9 +11,9 @@ public class HtmlUnitLogIn{
     
     public void logIn() throws IOException, SAXException{
         final WebClient webClient = new WebClient();
-    
+        
         final HtmlPage page = webClient.getPage("http://baidu.com");
-    
+        
         HtmlElement username = page.getFirstByXPath("//*[@id=\"username\"]");
         username.click();
         username.type("11310387");

@@ -1,10 +1,12 @@
 package com.github.darains.sustechhelper;
 
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 
@@ -19,10 +21,21 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("Sustech-Helper");
-        
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                System.exit(0);
+            }
+        });
         initRootLayout();
+    }
+    
+    @Override
+    public void stop(){
+    
+        primaryStage.close();
         
-//        showPersonOverview();
+        
     }
     
     /**
@@ -45,23 +58,7 @@ public class MainApp extends Application {
             e.printStackTrace();
         }
     }
-    
-    /**
-     * Shows the person overview inside the root layout.
-     */
-//    public void showPersonOverview() {
-//        try {
-//            // Load person overview.
-//            FXMLLoader loader = new FXMLLoader();
-//            loader.setLocation(MainApp.class.getResource("view/PersonOverview.fxml"));
-//            AnchorPane personOverview = (AnchorPane) loader.load();
-//
-//            // Set person overview into the center of root layout.
-////            rootLayout.setCenter(personOverview);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+
     
     /**
      * Returns the main stage.

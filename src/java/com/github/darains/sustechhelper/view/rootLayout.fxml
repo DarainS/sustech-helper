@@ -54,7 +54,7 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <Label layoutX="447.0" layoutY="322.0" text="Version: 0.1.1_alpha" />
+                        <Label layoutX="447.0" layoutY="322.0" text="Version: 0.3.0_beta" />
                         <Hyperlink layoutX="153.0" layoutY="105.0" onAction="#handleGithub" text="https://github.com/DarainS/sustech-helper" />
                      </children></AnchorPane>
             </content>

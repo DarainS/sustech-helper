@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.github.darains.sustechhelper.util.AppLogger;
+import com.github.darains.sustechhelper.util.Config;
 import com.github.darains.sustechhelper.util.TimeLog;
 import lombok.Setter;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -15,9 +16,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.xml.sax.SAXException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
@@ -242,20 +241,6 @@ public class WifiFunction implements Runnable{
     }
     
     
-    public static String text(CloseableHttpResponse response){
-        StringBuffer sb=new StringBuffer();
-        try {
-            BufferedReader br=new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            String d;
-            while ((d=br.readLine())!=null){
-                sb.append(d+"\n");
-            }
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return sb.toString();
-    }
     private   String time(){
         return TimeLog.timeInfo();
     }
@@ -263,7 +248,7 @@ public class WifiFunction implements Runnable{
     private volatile boolean shouldRun=true;
     
     public void run(){
-        appLogger.log(mo+"SUSTC_WIFI v0.2.2_beta "+mo);
+        appLogger.log(mo+"SUSTC_WIFI  "+Config.ABOUT.getProperty("version")+" "+mo);
         appLogger.log(TimeLog.timeInfo() + "Starting...");
         long begin= System.currentTimeMillis();
         while (shouldRun) {
@@ -277,24 +262,7 @@ public class WifiFunction implements Runnable{
         }
     }
     
-//        if (args.length==2&&args[0].length()==8&&args[0].compareTo("11110000")>0&&args[1].length()>=6) {
-//            userName=args[0];
-//            password=args[1];
-//            System.out.println(mo+"SUSTC_WIFI v0.1.0_beta "+mo);
-//            System.out.println(TimeLog.timeInfo() + "Starting...");
-//            while (true) {
-//                try {
-//                    isNetWorking();
-//                    sleep(2000);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        else {
-//            System.out.println("请输入你的学号和密码,我们绝不会以任何方式记录你的密码!");
-//            System.out.println("一个合法的输入示例为: java -jar C:\\\\sustc_wifi.jar 11310888 qwer1234");
-//        }
+    
     
     
     public static void setAppLogger(AppLogger l){
